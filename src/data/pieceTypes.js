@@ -111,20 +111,23 @@ export const SPECIALS = {
 
 // Get spawnable types based on level (early vs late game)
 export function getSpawnableForLevel(levelId) {
-  if (levelId >= 23) {
-    // Late game: all 9 types
+  if (levelId >= 31) {
+    // Endgame (world 2 deep): all 9 types
     return [...SPAWNABLE, ...ADVANCED_TYPES];
+  } else if (levelId >= 21) {
+    // World 2: all 8 types except shadow (shadow appears from 25+)
+    return [...SPAWNABLE, 'cosmic', 'crystal', 'prism', 'shadow'];
   } else if (levelId >= 16) {
-    // Mid-late: basic 5 + cosmic + crystal + prism
+    // World 1 mid-late: basic 5 + cosmic + crystal + prism
     return [...SPAWNABLE, 'cosmic', 'crystal', 'prism'];
   } else if (levelId >= 10) {
-    // Mid game: basic 5 + cosmic + crystal
+    // World 1 mid: basic 5 + cosmic + crystal
     return [...SPAWNABLE, 'cosmic', 'crystal'];
   } else if (levelId >= 7) {
-    // Early-mid: basic 5 + crystal
+    // World 1 early-mid: basic 5 + crystal
     return [...SPAWNABLE, 'crystal'];
   } else {
-    // Early levels: just the basic 5
+    // World 1 early: just the basic 5
     return [...SPAWNABLE];
   }
 }

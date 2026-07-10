@@ -27,11 +27,16 @@ export class Board {
     this.levelId = levelId;
     this.types = getSpawnableForLevel(levelId);
     this.neededTypes = neededTypes;
+    this.movesLeft = null;
+    this.totalMoves = null;
     
-    // Increase board size for harder levels (level 20+)
-    if (levelId >= 20) {
+    // Increase board size for harder levels
+    if (levelId >= 31) {
       this.rows = 10;
       this.cols = 10;
+    } else if (levelId >= 21) {
+      this.rows = 9;
+      this.cols = 9;
     } else if (levelId >= 12) {
       this.rows = 9;
       this.cols = 9;
@@ -44,18 +49,43 @@ export class Board {
     return this;
   }
 
+  /** Extra moves for levels with diverse collect requirements */
+  moveBonus() {
+    const n = Object.keys(this.neededTypes).length;
+    if (n >= 4) return 4;
+    if (n >= 3) return 2;
+    return 0;
+  }
+
   randomType() {
-    // BIAS: If we need specific types, make them spawn 40% more often
+    // ADAPTIVE BIAS: helps more when you're running low on moves,
+    // barely nudges when you're comfortable.
+    //
+    //   moves left      bias chance
+    //   ----------      -----------
+    //   ≤ 15%            35%       (desperate)
+    //   ≤ 30%            22%       (struggling)
+    //   ≤ 50%            12%       (getting tight)
+    //   > 50%             5%       (comfortable)
+    //   unknown           8%       (fallback)
+    //
     const neededKeys = Object.keys(this.neededTypes);
-    if (neededKeys.length > 0 && Math.random() < 0.4) {
-      // 40% chance to spawn a needed type
-      const neededType = neededKeys[Math.floor(Math.random() * neededKeys.length)];
-      // But only if this type is actually in our spawnable list
-      if (this.types.includes(neededType)) {
-        return neededType;
-      }
+    if (neededKeys.length === 0) return this.types[(Math.random() * this.types.length) | 0];
+
+    let biasChance = 0.08;
+    if (this.movesLeft !== null && this.totalMoves !== null && this.totalMoves > 0) {
+      const ratio = this.movesLeft / this.totalMoves;
+      if (ratio <= 0.15) biasChance = 0.35;
+      else if (ratio <= 0.30) biasChance = 0.22;
+      else if (ratio <= 0.50) biasChance = 0.12;
+      else biasChance = 0.05;
     }
-    // Otherwise random from all available types
+
+    if (Math.random() < biasChance) {
+      const sorted = [...neededKeys].sort((a, b) => (this.neededTypes[b] || 0) - (this.neededTypes[a] || 0));
+      const topType = sorted[0];
+      if (this.types.includes(topType)) return topType;
+    }
     return this.types[(Math.random() * this.types.length) | 0];
   }
 

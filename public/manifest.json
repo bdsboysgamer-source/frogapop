@@ -1,0 +1,28 @@
+{
+  "name": "Frogapop: Pineapple Paradise",
+  "short_name": "Frogapop",
+  "description": "A tropical match-3 puzzle game where you pop pineapples with frog friends!",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#062a3a",
+  "theme_color": "#3fae4c",
+  "categories": ["games", "entertainment", "puzzle"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "lang": "en",
+  "display_override": ["standalone", "minimal-ui"]
+}

@@ -1,13 +1,18 @@
-// Screen router + persistent progress. Screens are mount functions
-// that render into the stage and return a cleanup function.
-
 import { mountMainMenu } from '../components/menus/MainMenu.js';
 import { mountLevelSelect } from '../components/menus/LevelSelect.js';
 import { mountGameScreen } from './GameScreen.js';
-import { LEVELS } from '../data/levels.js';
+import { LEVELS, WORLDS } from '../data/levels.js';
 import { Sound } from './effects/Sound.js';
 
 const SAVE_KEY = 'frogapop.save.v1';
+
+// Power unlock thresholds (easily changeable — will be replaced by currency)
+export const POWER_UNLOCK = {
+  swap: 3,
+  clear: 7,
+  shuffle: 15,
+  rainbow: 22,
+};
 
 export class GameController {
   constructor(stage) {
@@ -39,9 +44,30 @@ export class GameController {
     return Object.values(this.saveData.stars).reduce((a, b) => a + b, 0);
   }
 
+  levelsCompleted() {
+    return Object.values(this.saveData.stars).filter((s) => s > 0).length;
+  }
+
   isUnlocked(levelId) {
     if (levelId === 1) return true;
-    return this.starsFor(levelId - 1) > 0;
+    const prev = this.starsFor(levelId - 1);
+    if (prev > 0) return true;
+    const w = this._worldFor(levelId);
+    if (!w) return false;
+    for (let i = w.startId; i < levelId; i++) {
+      if (this.starsFor(i) > 0) return true;
+    }
+    return false;
+  }
+
+  isWorldUnlocked(worldId) {
+    if (worldId === 1) return true;
+    const w = WORLDS.find((x) => x.id === worldId);
+    return w && this.levelsCompleted() >= w.unlockLevels;
+  }
+
+  _worldFor(levelId) {
+    return WORLDS.find((w) => levelId >= w.startId && levelId < w.startId + w.count);
   }
 
   currentLevelId() {
@@ -54,6 +80,14 @@ export class GameController {
       this.saveData.stars[levelId] = stars;
       this.persist();
     }
+  }
+
+  /** Power is unlocked? (stomp always available) */
+  powerUnlocked(powerId) {
+    if (powerId === 'stomp') return true;
+    const threshold = POWER_UNLOCK[powerId];
+    if (threshold === undefined) return false;
+    return this.levelsCompleted() >= threshold;
   }
 
   /* ---------- screen transitions ---------- */
@@ -73,10 +107,9 @@ export class GameController {
       let done = false;
       const finish = () => { if (!done) { done = true; resolve(); } };
       this.wipe.classList.remove('in', 'out');
-      void this.wipe.offsetWidth; // restart animation
+      void this.wipe.offsetWidth;
       this.wipe.classList.add(dir);
       this.wipe.addEventListener('animationend', finish, { once: true });
-      // fallback: animations are suspended in hidden tabs
       setTimeout(finish, 550);
     });
   }

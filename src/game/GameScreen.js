@@ -1,10 +1,6 @@
-// Gameplay screen: wires the BoardView to the HUD, frog mascot,
-// Mega Frog power meter, pause / victory / defeat overlays and the
-// level's win-loss rules.
-
 import { BoardView } from './board/BoardView.js';
 import { HUD } from '../components/ui/HUD.js';
-import { getLevel, LEVELS } from '../data/levels.js';
+import { getLevel, LEVELS, getWorld } from '../data/levels.js';
 import { FROGS, frogLine } from '../data/frogs.js';
 import { frogSVG } from '../components/characters/FrogArt.js';
 import { pieceIconHTML } from '../components/ui/pieceIcon.js';
@@ -13,12 +9,20 @@ import { ParticleSystem } from './effects/Particles.js';
 
 const POWER_MAX = 100;
 
+const POWER_META = {
+  stomp:   { name: 'FROGGY POWER', icon: '🐸', label: 'STOMP' },
+  swap:    { name: 'SWAP',         icon: '🔄', label: 'SWAP' },
+  clear:   { name: 'CLEAR',        icon: '✨', label: 'CLEAR' },
+  rainbow: { name: 'RAINBOW',      icon: '🌈', label: 'RAINBOW' },
+  shuffle: { name: 'SHUFFLE',      icon: '🔀', label: 'SHUFFLE' },
+};
+
 export function mountGameScreen(stage, controller, { levelId }) {
   const level = getLevel(levelId);
   const frog = FROGS[level.frog];
+  const world = getWorld(levelId);
 
   const state = {
-    moves: level.moves,
     score: 0,
     collected: {},
     power: 0,
@@ -28,13 +32,12 @@ export function mountGameScreen(stage, controller, { levelId }) {
     clearPower: 0,
     rainbowPower: 0,
     shufflePower: 0,
-    // Track permanent power progress across levels
     permanentRainbowPower: parseInt(localStorage.getItem('frogapop_rainbow_power') || '0'),
   };
 
   const el = document.createElement('div');
   el.className = 'screen';
-  el.style.background = 'linear-gradient(180deg, #45cfe4 0%, #7fe4da 45%, #1ba8c9 100%)';
+  el.style.background = world.bg;
   el.innerHTML = `
     <div class="scene">
       <div class="cloud" style="top:44px;transform:scale(0.8);animation-duration:42s;animation-delay:-12s;opacity:0.75;"></div>
@@ -45,7 +48,6 @@ export function mountGameScreen(stage, controller, { levelId }) {
   `;
   stage.appendChild(el);
 
-  // centered column keeps HUD/board/frog together on wide screens
   const col = document.createElement('div');
   col.className = 'game-col';
   el.appendChild(col);
@@ -61,49 +63,49 @@ export function mountGameScreen(stage, controller, { levelId }) {
   `;
   col.appendChild(boardWrap);
 
+  // Check which powers are unlocked
+  const unlocked = {
+    stomp: true,
+    swap: controller.powerUnlocked('swap'),
+    clear: controller.powerUnlocked('clear'),
+    rainbow: controller.powerUnlocked('rainbow'),
+    shuffle: controller.powerUnlocked('shuffle'),
+  };
+
   // bottom HUD: frog mascot + power buttons
   const bottom = document.createElement('div');
   bottom.className = 'hud-bottom';
+  const powerBtns = Object.entries(POWER_META).filter(([id]) => id !== 'stomp')
+    .map(([id, m]) => {
+      const u = unlocked[id];
+      return `<button class="frog-power${u ? '' : ' locked'}" id="${id}PowerBtn" style="--fill:0%">
+        <span class="fp-inner">${u ? m.icon : '🔒'}</span>
+        <span class="fp-label">${u ? m.label : 'LOCKED'}</span>
+      </button>`;
+    }).join('');
   bottom.innerHTML = `
     <div class="frog-perch" id="frogPerch">${frogSVG(level.frog, { width: 118 })}</div>
     <div class="speech-bubble" id="bubble"></div>
     <div class="power-buttons">
-      <button class="frog-power" id="powerBtn" style="--fill:0%">
+      <button class="frog-power" id="stompPowerBtn" style="--fill:0%">
         <span class="fp-inner">🐸</span>
-        <span class="fp-label">FROGGY POWER</span>
+        <span class="fp-label">STOMP</span>
       </button>
-      <button class="frog-power" id="swapPowerBtn" style="--fill:0%">
-        <span class="fp-inner">🔄</span>
-        <span class="fp-label">SWAP</span>
-      </button>
-      <button class="frog-power" id="clearPowerBtn" style="--fill:0%">
-        <span class="fp-inner">✨</span>
-        <span class="fp-label">CLEAR</span>
-      </button>
-      <button class="frog-power" id="rainbowPowerBtn" style="--fill:${Math.min(100, (state.permanentRainbowPower / POWER_MAX) * 100)}%">
-        <span class="fp-inner">🌈</span>
-        <span class="fp-label">RAINBOW</span>
-      </button>
-      <button class="frog-power" id="shufflePowerBtn" style="--fill:0%">
-        <span class="fp-inner">🔀</span>
-        <span class="fp-label">SHUFFLE</span>
-      </button>
+      ${powerBtns}
     </div>
   `;
   col.appendChild(bottom);
 
   const bubble = bottom.querySelector('#bubble');
   const perch = bottom.querySelector('#frogPerch');
-  const powerBtn = bottom.querySelector('#powerBtn');
-  const swapPowerBtn = bottom.querySelector('#swapPowerBtn');
-  const clearPowerBtn = bottom.querySelector('#clearPowerBtn');
-  const rainbowPowerBtn = bottom.querySelector('#rainbowPowerBtn');
-  const shufflePowerBtn = bottom.querySelector('#shufflePowerBtn');
+  const powerBtnsEls = {};
+  for (const id of Object.keys(POWER_META)) {
+    powerBtnsEls[id] = bottom.querySelector(`#${id}PowerBtn`);
+  }
   const comboBanner = boardWrap.querySelector('#comboBanner');
   const boardFrame = boardWrap.querySelector('#boardFrame');
 
-  // Set initial rainbow power from localStorage
-  rainbowPowerBtn.classList.toggle('ready', state.permanentRainbowPower >= POWER_MAX);
+  powerBtnsEls.rainbow?.classList.toggle('ready', state.permanentRainbowPower >= POWER_MAX);
 
   let bubbleTimer = null;
   function say(kind) {
@@ -122,48 +124,44 @@ export function mountGameScreen(stage, controller, { levelId }) {
   function addPower(n) {
     if (state.ended) return;
     state.power = Math.min(POWER_MAX, state.power + n);
-    powerBtn.style.setProperty('--fill', `${(state.power / POWER_MAX) * 100}%`);
-    powerBtn.classList.toggle('ready', state.power >= POWER_MAX);
-    
-    // Other powers charge at different rates
+    setFill('stomp', state.power);
+
     const swapCharge = n * 0.5;
     state.swapPower = Math.min(POWER_MAX, state.swapPower + swapCharge);
-    swapPowerBtn.style.setProperty('--fill', `${(state.swapPower / POWER_MAX) * 100}%`);
-    swapPowerBtn.classList.toggle('ready', state.swapPower >= POWER_MAX);
-    
+    setFill('swap', state.swapPower);
+
     const clearCharge = n * 0.5;
     state.clearPower = Math.min(POWER_MAX, state.clearPower + clearCharge);
-    clearPowerBtn.style.setProperty('--fill', `${(state.clearPower / POWER_MAX) * 100}%`);
-    clearPowerBtn.classList.toggle('ready', state.clearPower >= POWER_MAX);
-    
-    // RAINBOW POWER charges MUCH slower (only 10% of normal rate)
+    setFill('clear', state.clearPower);
+
     const rainbowCharge = n * 0.1;
     state.permanentRainbowPower = Math.min(POWER_MAX, state.permanentRainbowPower + rainbowCharge);
-    // Save to localStorage so it persists
     localStorage.setItem('frogapop_rainbow_power', String(state.permanentRainbowPower));
-    rainbowPowerBtn.style.setProperty('--fill', `${(state.permanentRainbowPower / POWER_MAX) * 100}%`);
-    rainbowPowerBtn.classList.toggle('ready', state.permanentRainbowPower >= POWER_MAX);
-    
+    setFill('rainbow', state.permanentRainbowPower, true);
+
     const shuffleCharge = n * 0.4;
     state.shufflePower = Math.min(POWER_MAX, state.shufflePower + shuffleCharge);
-    shufflePowerBtn.style.setProperty('--fill', `${(state.shufflePower / POWER_MAX) * 100}%`);
-    shufflePowerBtn.classList.toggle('ready', state.shufflePower >= POWER_MAX);
+    setFill('shuffle', state.shufflePower);
+  }
+
+  function setFill(id, val, permanent = false) {
+    const el = powerBtnsEls[id];
+    if (!el) return;
+    el.style.setProperty('--fill', `${(val / POWER_MAX) * 100}%`);
+    el.classList.toggle('ready', val >= POWER_MAX);
   }
 
   /* ---------- board view + event wiring ---------- */
-  // Pass the level's collect requirements to the board for spawn bias
   const boardView = new BoardView(
-    boardWrap.querySelector('#boardCanvas'), 
+    boardWrap.querySelector('#boardCanvas'),
     {
       canMove: () => state.started && !state.ended && state.moves > 0,
       onMoveUsed: () => {
         state.moves--;
+        boardView.board.movesLeft = state.moves;
         hud.setMoves(state.moves);
       },
-      onScore: (points) => {
-        state.score += points;
-        hud.setScore(state.score);
-      },
+      onScore: (points) => { state.score += points; hud.setScore(state.score); },
       onCollect: (counts) => {
         for (const [t, n] of Object.entries(counts))
           state.collected[t] = (state.collected[t] ?? 0) + n;
@@ -183,88 +181,74 @@ export function mountGameScreen(stage, controller, { levelId }) {
       onSpecialCreated: () => { say('special'); addPower(10); },
       onSpecialFired: () => addPower(8),
       onSettled: () => checkEnd(),
-    }, 
+    },
     levelId,
-    level.collect // Pass collect objectives for spawn bias
+    level.collect
   );
-  
-  // Update board frame size attribute for CSS styling
+
+  state.moves = level.moves + boardView.board.moveBonus();
+  boardView.board.totalMoves = state.moves;
+  boardView.board.movesLeft = state.moves;
+  hud.setMoves(state.moves);
+
   const boardSize = boardView.board.rows;
   boardFrame.dataset.size = boardSize;
-  
   boardView.enabled = false;
 
-  // FROGGY POWER - Stomp
-  powerBtn.addEventListener('click', async () => {
-    if (state.power < POWER_MAX || state.ended || boardView.busy || !state.started) return;
-    state.power = 0;
-    powerBtn.style.setProperty('--fill', '0%');
-    powerBtn.classList.remove('ready');
-    say('power');
-    frogCheer();
-    await boardView.playFrogPower(level.frog);
-  });
+  // Power click handlers (only if unlocked)
+  function canUsePower(id) {
+    if (!unlocked[id]) return false;
+    if (id === 'stomp') return state.power >= POWER_MAX;
+    if (id === 'swap') return state.swapPower >= POWER_MAX;
+    if (id === 'clear') return state.clearPower >= POWER_MAX;
+    if (id === 'rainbow') return state.permanentRainbowPower >= POWER_MAX;
+    if (id === 'shuffle') return state.shufflePower >= POWER_MAX;
+    return false;
+  }
 
-  // SWAP POWER - Swap all of one type to another
-  swapPowerBtn.addEventListener('click', async () => {
-    if (state.swapPower < POWER_MAX || state.ended || boardView.busy || !state.started) return;
-    state.swapPower = 0;
-    swapPowerBtn.style.setProperty('--fill', '0%');
-    swapPowerBtn.classList.remove('ready');
-    
+  function usePower(id, fn) {
+    return async () => {
+      if (!canUsePower(id) || state.ended || boardView.busy || !state.started) return;
+      if (id === 'stomp') { state.power = 0; setFill('stomp', 0); }
+      if (id === 'swap') { state.swapPower = 0; setFill('swap', 0); }
+      if (id === 'clear') { state.clearPower = 0; setFill('clear', 0); }
+      if (id === 'rainbow') {
+        state.permanentRainbowPower = 0;
+        localStorage.setItem('frogapop_rainbow_power', '0');
+        setFill('rainbow', 0);
+      }
+      if (id === 'shuffle') { state.shufflePower = 0; setFill('shuffle', 0); }
+      say('power');
+      frogCheer();
+      await fn();
+    };
+  }
+
+  powerBtnsEls.stomp.addEventListener('click', usePower('stomp', async () => {
+    await boardView.playFrogPower(level.frog);
+  }));
+
+  powerBtnsEls.swap.addEventListener('click', usePower('swap', async () => {
     const commonType = boardView.board.mostCommonType();
     const types = boardView.board.types;
-    let targetType = commonType;
     const otherTypes = types.filter(t => t !== commonType);
-    if (otherTypes.length > 0) {
-      targetType = otherTypes[Math.floor(Math.random() * otherTypes.length)];
-    }
-    
-    say('power');
-    frogCheer();
+    const targetType = otherTypes.length > 0
+      ? otherTypes[Math.floor(Math.random() * otherTypes.length)]
+      : commonType;
     await boardView.playFroggySwap(commonType, targetType);
-  });
+  }));
 
-  // CLEAR POWER - Clear all of one type
-  clearPowerBtn.addEventListener('click', async () => {
-    if (state.clearPower < POWER_MAX || state.ended || boardView.busy || !state.started) return;
-    state.clearPower = 0;
-    clearPowerBtn.style.setProperty('--fill', '0%');
-    clearPowerBtn.classList.remove('ready');
-    
-    const commonType = boardView.board.mostCommonType();
-    
-    say('power');
-    frogCheer();
-    await boardView.playFroggyClear(commonType);
-  });
+  powerBtnsEls.clear.addEventListener('click', usePower('clear', async () => {
+    await boardView.playFroggyClear(boardView.board.mostCommonType());
+  }));
 
-  // RAINBOW POWER - Turn one type into rainbows (PERMANENT progress, slower charge)
-  rainbowPowerBtn.addEventListener('click', async () => {
-    if (state.permanentRainbowPower < POWER_MAX || state.ended || boardView.busy || !state.started) return;
-    state.permanentRainbowPower = 0;
-    localStorage.setItem('frogapop_rainbow_power', '0');
-    rainbowPowerBtn.style.setProperty('--fill', '0%');
-    rainbowPowerBtn.classList.remove('ready');
-    
-    const commonType = boardView.board.mostCommonType();
-    
-    say('power');
-    frogCheer();
-    await boardView.playFroggyRainbow(commonType);
-  });
+  powerBtnsEls.rainbow.addEventListener('click', usePower('rainbow', async () => {
+    await boardView.playFroggyRainbow(boardView.board.mostCommonType());
+  }));
 
-  // SHUFFLE POWER - Shuffle the board
-  shufflePowerBtn.addEventListener('click', async () => {
-    if (state.shufflePower < POWER_MAX || state.ended || boardView.busy || !state.started) return;
-    state.shufflePower = 0;
-    shufflePowerBtn.style.setProperty('--fill', '0%');
-    shufflePowerBtn.classList.remove('ready');
-    
-    say('power');
-    frogCheer();
+  powerBtnsEls.shuffle.addEventListener('click', usePower('shuffle', async () => {
     await boardView.playFroggyShuffle();
-  });
+  }));
 
   /* ---------- win / lose ---------- */
   function objectivesDone() {
@@ -308,17 +292,17 @@ export function mountGameScreen(stage, controller, { levelId }) {
     setTimeout(() => ov.remove(), 260);
   }
 
-  /* level intro */
   function showIntro() {
     const ov = overlay(`
       <div style="width:104px;margin-top:-72px;filter:drop-shadow(0 8px 10px rgba(0,40,20,0.3));">${frogSVG(level.frog, { width: 104 })}</div>
-      <div class="card-title" style="font-size:26px;">Level ${level.id} · ${level.name}</div>
+      <div class="card-title" style="font-size:26px;">${world.name} · Level ${level.id}</div>
+      <div class="card-title" style="font-size:22px;">${level.name}</div>
       <div class="result-sub">${level.intro}</div>
       <div class="objective-row" style="gap:16px;">
         ${Object.entries(level.collect).map(([t, n]) => `
           <div class="objective-chip">${pieceIconHTML(t, 38)}<span style="font-size:20px;">×${n}</span></div>`).join('')}
       </div>
-      <div class="result-sub" style="font-size:14px;">in <b>${level.moves}</b> moves — ${frog.name} the ${frog.species} believes in you!</div>
+      <div class="result-sub" style="font-size:14px;">in <b>${state.moves}</b> moves — ${frog.name} the ${frog.species} believes in you!</div>
       <button class="btn btn-green pulse" id="goBtn">LET'S POP!</button>
     `);
     ov.querySelector('#goBtn').addEventListener('click', () => {
@@ -418,7 +402,7 @@ export function mountGameScreen(stage, controller, { levelId }) {
     ov.querySelector('#dMapBtn').addEventListener('click', () => { Sound.button(); controller.gotoMap(); });
   }
 
-  /* confetti burst over the whole stage */
+  /* confetti */
   let confettiRaf = null;
   function launchConfetti() {
     const cv = document.createElement('canvas');

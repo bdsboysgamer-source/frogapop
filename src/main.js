@@ -4,6 +4,11 @@
 
 import { GameController } from './game/GameController.js';
 
+// Register service worker for PWA offline support
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 const app = document.getElementById('app');
 const stage = document.createElement('div');
 stage.className = 'stage';
