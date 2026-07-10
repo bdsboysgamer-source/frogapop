@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frogapop",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "vite", "--port", "5183", "--strictPort"],
+      "port": 5183
+    }
+  ]
+}
