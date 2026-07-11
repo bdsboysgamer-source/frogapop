@@ -49,25 +49,16 @@ export class GameController {
   }
 
   isUnlocked(levelId) {
+    if (this.saveData.allUnlocked) return true;
     if (levelId === 1) return true;
-    const prev = this.starsFor(levelId - 1);
-    if (prev > 0) return true;
-    const w = this._worldFor(levelId);
-    if (!w) return false;
-    for (let i = w.startId; i < levelId; i++) {
-      if (this.starsFor(i) > 0) return true;
-    }
-    return false;
+    return this.starsFor(levelId - 1) > 0;
   }
 
   isWorldUnlocked(worldId) {
+    if (this.saveData.allUnlocked) return true;
     if (worldId === 1) return true;
     const w = WORLDS.find((x) => x.id === worldId);
     return w && this.levelsCompleted() >= w.unlockLevels;
-  }
-
-  _worldFor(levelId) {
-    return WORLDS.find((w) => levelId >= w.startId && levelId < w.startId + w.count);
   }
 
   currentLevelId() {

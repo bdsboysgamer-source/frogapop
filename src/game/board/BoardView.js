@@ -113,72 +113,158 @@ export class BoardView {
   }
 
   /* ============================================================
-     input
+     input — one unified gesture pipeline for pointer, touch and
+     mouse. Modern Pointer Events are used where available (with
+     pointer capture, so a finger that slides off the canvas still
+     tracks); a touch/mouse fallback covers older engines.
+
+     Goals: native-feeling drags on Android + iOS, reliable swipe
+     direction, fast-flick recognition, a dead-zone that ignores
+     accidental micro-movement, and zero page scrolling mid-swipe.
      ============================================================ */
   bindInput() {
-    const cellFromEvent = (e) => {
+    // Stop the browser from claiming the gesture as a scroll/zoom.
+    // This is the single biggest reason swipes felt flaky on Android.
+    this.canvas.style.touchAction = 'none';
+    this.canvas.style.userSelect = 'none';
+
+    const rectCell = (clientX, clientY) => {
       const rect = this.canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * this.w;
-      const y = ((e.clientY - rect.top) / rect.height) * this.h;
+      const x = ((clientX - rect.left) / rect.width) * this.w;
+      const y = ((clientY - rect.top) / rect.height) * this.h;
       const c = Math.floor(x / CELL);
       const r = Math.floor(y / CELL);
       if (r < 0 || c < 0 || r >= this.rows || c >= this.cols) return null;
       return { r, c };
     };
 
-    let dragStart = null;
-    let dragCell = null;
+    // gesture state
+    const g = { active: false, id: null, cell: null, sx: 0, sy: 0, t0: 0, committed: false, moved: 0 };
 
-    this.canvas.addEventListener('pointerdown', (e) => {
-      if (this.busy || !this.enabled) return;
-      Sound.ensure();
-      dragCell = cellFromEvent(e);
-      dragStart = { x: e.clientX, y: e.clientY };
-      this.idleTime = 0;
-      if (dragCell) {
-        const sp = this.spriteAt(dragCell.r, dragCell.c);
-        if (sp) this.bounceSprite(sp);
-      }
-    });
+    // commit threshold scales with the on-screen cell size so it feels
+    // the same on a dense phone and a large desktop board.
+    const commitThreshold = () => {
+      const rect = this.canvas.getBoundingClientRect();
+      const cellPx = rect.width / this.cols;
+      return Math.max(9, cellPx * 0.34);
+    };
+    const DEAD_ZONE = 7;              // px — below this a gesture is a tap
+    const FLICK_MS = 260;             // a quick sub-threshold drag still swipes
 
-    this.canvas.addEventListener('pointermove', (e) => {
-      if (!dragStart || !dragCell || this.busy || !this.enabled) return;
-      const dx = e.clientX - dragStart.x;
-      const dy = e.clientY - dragStart.y;
-      if (Math.abs(dx) < 14 && Math.abs(dy) < 14) return;
+    const swipe = (from, dx, dy) => {
       const dir = Math.abs(dx) > Math.abs(dy)
         ? { r: 0, c: Math.sign(dx) }
         : { r: Math.sign(dy), c: 0 };
-      const target = { r: dragCell.r + dir.r, c: dragCell.c + dir.c };
-      const from = dragCell;
-      dragStart = null;
-      dragCell = null;
+      const target = { r: from.r + dir.r, c: from.c + dir.c };
+      if (target.r < 0 || target.c < 0 || target.r >= this.rows || target.c >= this.cols) return;
       this.selected = null;
-      if (target.r >= 0 && target.c >= 0 && target.r < this.rows && target.c < this.cols) {
-        this.trySwap(from, target);
-      }
-    });
+      this.trySwap(from, target);
+    };
 
-    const endDrag = (e) => {
-      if (!dragStart || !dragCell) { dragStart = null; dragCell = null; return; }
-      const cell = cellFromEvent(e);
-      dragStart = null;
-      const tapped = dragCell;
-      dragCell = null;
-      if (!cell || cell.r !== tapped.r || cell.c !== tapped.c) return;
-      // tap-select / tap-swap
-      if (this.selected && isAdjacent(this.selected, cell)) {
-        const a = this.selected;
-        this.selected = null;
-        this.trySwap(a, cell);
-      } else if (this.selected && this.selected.r === cell.r && this.selected.c === cell.c) {
-        this.selected = null;
-      } else {
-        this.selected = cell;
+    const begin = (clientX, clientY, pointerId, evt) => {
+      if (this.busy || !this.enabled) return;
+      if (g.active) return;                 // ignore secondary fingers
+      Sound.ensure();
+      const cell = rectCell(clientX, clientY);
+      g.active = true; g.id = pointerId ?? null; g.cell = cell;
+      g.sx = clientX; g.sy = clientY; g.t0 = performance.now();
+      g.committed = false; g.moved = 0;
+      this.idleTime = 0;
+      if (cell) {
+        const sp = this.spriteAt(cell.r, cell.c);
+        if (sp) this.bounceSprite(sp);
+      }
+      if (evt && this.canvas.setPointerCapture && pointerId != null) {
+        try { this.canvas.setPointerCapture(pointerId); } catch { /* noop */ }
       }
     };
-    this.canvas.addEventListener('pointerup', endDrag);
-    this.canvas.addEventListener('pointercancel', () => { dragStart = null; dragCell = null; });
+
+    const move = (clientX, clientY) => {
+      if (!g.active || g.committed || !g.cell) return;
+      if (this.busy || !this.enabled) { g.active = false; return; }
+      const dx = clientX - g.sx;
+      const dy = clientY - g.sy;
+      g.moved = Math.max(g.moved, Math.hypot(dx, dy));
+      if (Math.max(Math.abs(dx), Math.abs(dy)) >= commitThreshold()) {
+        g.committed = true;
+        swipe(g.cell, dx, dy);
+      }
+    };
+
+    const end = (clientX, clientY) => {
+      if (!g.active) return;
+      const wasCommitted = g.committed;
+      const cell = g.cell;
+      const dx = clientX - g.sx;
+      const dy = clientY - g.sy;
+      const dist = Math.hypot(dx, dy);
+      const dt = performance.now() - g.t0;
+      g.active = false; g.id = null; g.cell = null; g.committed = false;
+
+      if (wasCommitted || !cell) return;
+
+      // a fast flick that ended before crossing the threshold still swipes
+      if (dist > DEAD_ZONE && (dist >= commitThreshold() * 0.55 || dt <= FLICK_MS)) {
+        swipe(cell, dx, dy);
+        return;
+      }
+      if (dist <= DEAD_ZONE) {
+        // tap: select, then tap-swap an adjacent cell
+        if (this.selected && isAdjacent(this.selected, cell)) {
+          const a = this.selected; this.selected = null; this.trySwap(a, cell);
+        } else if (this.selected && this.selected.r === cell.r && this.selected.c === cell.c) {
+          this.selected = null;
+        } else {
+          this.selected = cell;
+        }
+      }
+    };
+
+    const cancel = () => { g.active = false; g.id = null; g.cell = null; g.committed = false; };
+
+    if (window.PointerEvent) {
+      this.canvas.addEventListener('pointerdown', (e) => {
+        if (e.button != null && e.button !== 0 && e.pointerType === 'mouse') return;
+        e.preventDefault();
+        begin(e.clientX, e.clientY, e.pointerId, e);
+      });
+      this.canvas.addEventListener('pointermove', (e) => {
+        if (!g.active || (g.id != null && e.pointerId !== g.id)) return;
+        e.preventDefault();
+        move(e.clientX, e.clientY);
+      });
+      const up = (e) => {
+        if (g.id != null && e.pointerId !== g.id) return;
+        end(e.clientX, e.clientY);
+        if (this.canvas.releasePointerCapture && e.pointerId != null) {
+          try { this.canvas.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+        }
+      };
+      this.canvas.addEventListener('pointerup', up);
+      this.canvas.addEventListener('pointercancel', cancel);
+    } else {
+      // legacy fallback: touch (non-passive so we can preventDefault) + mouse
+      this.canvas.addEventListener('touchstart', (e) => {
+        const t = e.changedTouches[0];
+        e.preventDefault();
+        begin(t.clientX, t.clientY, t.identifier, null);
+      }, { passive: false });
+      this.canvas.addEventListener('touchmove', (e) => {
+        const t = e.changedTouches[0];
+        e.preventDefault();
+        move(t.clientX, t.clientY);
+      }, { passive: false });
+      this.canvas.addEventListener('touchend', (e) => {
+        const t = e.changedTouches[0];
+        end(t.clientX, t.clientY);
+      });
+      this.canvas.addEventListener('touchcancel', cancel);
+
+      let mouseDown = false;
+      this.canvas.addEventListener('mousedown', (e) => { mouseDown = true; begin(e.clientX, e.clientY, null, null); });
+      this.canvas.addEventListener('mousemove', (e) => { if (mouseDown) move(e.clientX, e.clientY); });
+      window.addEventListener('mouseup', (e) => { if (mouseDown) { mouseDown = false; end(e.clientX, e.clientY); } });
+    }
   }
 
   bounceSprite(sp) {

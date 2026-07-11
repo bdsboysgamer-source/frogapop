@@ -52,39 +52,50 @@ export class Board {
   /** Extra moves for levels with diverse collect requirements */
   moveBonus() {
     const n = Object.keys(this.neededTypes).length;
-    if (n >= 4) return 4;
-    if (n >= 3) return 2;
+    if (n >= 5) return 8;
+    if (n >= 4) return 6;
+    if (n >= 3) return 4;
+    if (n >= 2) return 2;
     return 0;
   }
 
   randomType() {
-    // ADAPTIVE BIAS: helps more when you're running low on moves,
-    // barely nudges when you're comfortable.
+    // ADAPTIVE BIAS: biases toward ALL needed types proportionally.
+    // Ramping up as moves dwindle so it helps when struggling without
+    // making early moves trivial.
     //
     //   moves left      bias chance
     //   ----------      -----------
-    //   ≤ 15%            35%       (desperate)
-    //   ≤ 30%            22%       (struggling)
-    //   ≤ 50%            12%       (getting tight)
-    //   > 50%             5%       (comfortable)
-    //   unknown           8%       (fallback)
+    //   ≤ 15%            45%       (desperate)
+    //   ≤ 30%            30%       (struggling)
+    //   ≤ 50%            20%       (getting tight)
+    //   > 50%            10%       (comfortable)
+    //   unknown          12%       (fallback)
     //
     const neededKeys = Object.keys(this.neededTypes);
     if (neededKeys.length === 0) return this.types[(Math.random() * this.types.length) | 0];
 
-    let biasChance = 0.08;
+    let biasChance = 0.12;
     if (this.movesLeft !== null && this.totalMoves !== null && this.totalMoves > 0) {
       const ratio = this.movesLeft / this.totalMoves;
-      if (ratio <= 0.15) biasChance = 0.35;
-      else if (ratio <= 0.30) biasChance = 0.22;
-      else if (ratio <= 0.50) biasChance = 0.12;
-      else biasChance = 0.05;
+      if (ratio <= 0.15) biasChance = 0.45;
+      else if (ratio <= 0.30) biasChance = 0.30;
+      else if (ratio <= 0.50) biasChance = 0.20;
+      else biasChance = 0.10;
     }
 
     if (Math.random() < biasChance) {
-      const sorted = [...neededKeys].sort((a, b) => (this.neededTypes[b] || 0) - (this.neededTypes[a] || 0));
-      const topType = sorted[0];
-      if (this.types.includes(topType)) return topType;
+      // Pick from needed types proportional to remaining count
+      const available = neededKeys.filter(t => this.types.includes(t));
+      if (available.length > 0) {
+        const total = available.reduce((s, t) => s + (this.neededTypes[t] || 0), 0);
+        let r = Math.random() * total;
+        for (const t of available) {
+          r -= (this.neededTypes[t] || 0);
+          if (r <= 0) return t;
+        }
+        return available[available.length - 1];
+      }
     }
     return this.types[(Math.random() * this.types.length) | 0];
   }

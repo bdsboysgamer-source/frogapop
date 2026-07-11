@@ -49,7 +49,7 @@ export function mountMainMenu(stage, controller) {
     <div class="speech-bubble" id="menuBubble" style="left:150px;bottom:130px;"></div>
 
     <div style="position:absolute;bottom:34px;right:26px;z-index:3;display:flex;gap:2px;align-items:flex-end;">
-      <span class="floaty" style="animation-delay:-0.5s">${pieceIconHTML('golden', 56)}</span>
+      <span class="floaty" style="animation-delay:-0.5s;cursor:pointer;" id="goldenPine">${pieceIconHTML('golden', 56)}</span>
       <span class="floaty" style="animation-delay:-1.4s">${pieceIconHTML('pink', 44)}</span>
       <span class="floaty" style="animation-delay:-2.2s">${pieceIconHTML('ice', 38)}</span>
     </div>
@@ -90,6 +90,25 @@ export function mountMainMenu(stage, controller) {
     const muted = Sound.toggleMute();
     soundBtn.textContent = muted ? '🔇' : '🔊';
     if (!muted) Sound.button();
+  });
+
+  // Golden pineapple → 3 clicks → cheat unlock
+  let pineClicks = 0;
+  let pineTimer = null;
+  el.querySelector('#goldenPine').addEventListener('click', () => {
+    pineClicks++;
+    clearTimeout(pineTimer);
+    pineTimer = setTimeout(() => { pineClicks = 0; }, 1200);
+    if (pineClicks >= 3) {
+      pineClicks = 0;
+      Sound.ensure();
+      const pw = prompt('Enter unlock password:');
+      if (pw && pw.toLowerCase() === 'ribbit') {
+        controller.saveData.allUnlocked = true;
+        controller.persist();
+        say('All levels unlocked!');
+      }
+    }
   });
 
   el.querySelector('#resetBtn').addEventListener('click', () => {
