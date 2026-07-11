@@ -1,13 +1,33 @@
-# Wrangler config for Frogapop (Cloudflare Pages + D1 leaderboards).
-# Only needed if you deploy/preview via Wrangler. If you use the Cloudflare
-# dashboard's Git integration, bind D1 as `DB` in the project settings
-# instead (see LEADERBOARD_SETUP.md).
+# Cloudflare Worker config for Frogapop.
+#
+# Deploy: create a Worker in the Cloudflare dashboard and connect this
+# GitHub repo (Workers Builds). That's it — Wrangler runs the build below,
+# serves ./dist through the ASSETS binding, and runs worker/index.js.
+# Leave the deploy command at its default (`npx wrangler deploy`).
+
 name = "frogapop"
-pages_build_output_dir = "dist"
+main = "worker/index.js"
 compatibility_date = "2024-11-01"
 
-# Paste the database_id from `wrangler d1 create frogapop-lb`:
-[[d1_databases]]
-binding = "DB"
-database_name = "frogapop-lb"
-database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
+# Build the site before deploying (runs in Workers Builds and on
+# `wrangler deploy`).
+[build]
+command = "npm install && npm run build"
+
+# Serve the built game as static assets.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# ---- Online leaderboards (OPTIONAL) -------------------------------------
+# The game works without this — boards stay per-device until you enable D1.
+# To turn on global leaderboards:
+#   1) npx wrangler d1 create frogapop-lb
+#   2) paste the database_id below and uncomment this block
+#   3) redeploy   (schema is auto-created on first request)
+# See LEADERBOARD_SETUP.md for details.
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "frogapop-lb"
+# database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
