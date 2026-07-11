@@ -5,6 +5,7 @@
 import { Sound } from '../../game/effects/Sound.js';
 import { createAccount, isOnlineAvailable } from '../../net/leaderboard.js';
 import { applySettings } from '../../game/settings.js';
+import { icon } from '../ui/icons.js';
 
 export function mountSettings(stage, controller) {
   const el = document.createElement('div');
@@ -17,23 +18,23 @@ export function mountSettings(stage, controller) {
     el.innerHTML = `
       <div class="sheet-bg"></div>
       <div class="sheet-header">
-        <button class="btn btn-blue btn-round" id="backBtn">←</button>
+        <button class="btn btn-blue btn-round" id="backBtn">${icon('back', { size: 26 })}</button>
         <div class="sheet-title">Settings</div>
         <div style="width:52px;"></div>
       </div>
       <div class="sheet-body">
         <div class="panel">
           <div class="panel-title">Audio & Motion</div>
-          ${toggleRow('sound', '🔊 Sound effects', s.sound)}
-          ${toggleRow('music', '🎵 Music', s.music)}
-          ${toggleRow('motion', '✨ Animations', s.motion)}
+          ${toggleRow('sound', s.sound ? 'soundOn' : 'soundOff', 'Sound effects', s.sound)}
+          ${toggleRow('music', 'music', 'Music', s.music)}
+          ${toggleRow('motion', 'sparkle', 'Animations', s.motion)}
         </div>
 
         <div class="panel">
           <div class="panel-title">Account <span class="panel-note">for online leaderboards</span></div>
           ${acct ? `
             <div class="acct-row">
-              <div class="acct-name">👤 ${acct.name}${acct.token ? '' : ' <span class="acct-local">(local)</span>'}</div>
+              <div class="acct-name">${icon('account', { size: 20 })} ${acct.name}${acct.token ? '' : ' <span class="acct-local">(local)</span>'}</div>
               <button class="btn btn-pink btn-small" id="signOut">Sign out</button>
             </div>
             <div class="panel-note">You can post scores to the global boards. No login ever expires.</div>
@@ -49,7 +50,7 @@ export function mountSettings(stage, controller) {
 
         <div class="panel">
           <div class="panel-title">Progress</div>
-          <button class="btn btn-pink" id="resetBtn" style="width:100%;">↺ Reset all progress</button>
+          <button class="btn btn-pink" id="resetBtn" style="width:100%;">${icon('retry', { size: 22 })} Reset all progress</button>
         </div>
       </div>
     `;
@@ -100,9 +101,9 @@ export function mountSettings(stage, controller) {
     });
   }
 
-  function toggleRow(key, label, on) {
+  function toggleRow(key, iconName, label, on) {
     return `<button class="toggle-row" data-toggle="${key}">
-      <span>${label}</span>
+      <span>${icon(iconName, { size: 22 })}${label}</span>
       <span class="toggle ${on ? 'on' : ''}"><span class="knob"></span></span>
     </button>`;
   }

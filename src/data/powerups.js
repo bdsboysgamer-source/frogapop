@@ -9,43 +9,43 @@ export const LOADOUT_SIZE = 4;
 
 export const POWERUPS = {
   stomp: {
-    id: 'stomp', name: 'Froggy Stomp', icon: '🐸', price: 0, charge: 60,
-    method: 'stomp', tint: '#57c96b', starter: true,
+    id: 'stomp', name: 'Froggy Stomp', icon: 'puStomp', price: 0, charge: 60,
+    method: 'stomp', tint: '#3fae4c', starter: true,
     blurb: 'A mighty frog hops across the board and stomps 9 tiles flat.',
   },
   shuffle: {
-    id: 'shuffle', name: 'Big Shuffle', icon: '🔀', price: 300, charge: 55,
-    method: 'shuffle', tint: '#5aa8e6',
+    id: 'shuffle', name: 'Big Shuffle', icon: 'puShuffle', price: 300, charge: 55,
+    method: 'shuffle', tint: '#1e9de2',
     blurb: 'Shake up the whole board when you run out of good moves.',
   },
   swap: {
-    id: 'swap', name: 'Color Swap', icon: '🔄', price: 500, charge: 70,
-    method: 'swap', tint: '#f0b429',
+    id: 'swap', name: 'Color Swap', icon: 'puSwap', price: 500, charge: 70,
+    method: 'swap', tint: '#f0a91e',
     blurb: 'Turn every tile of one kind into another — instant combos.',
   },
   lily: {
-    id: 'lily', name: 'Lily Bomb', icon: '💣', price: 600, charge: 75,
-    method: 'lily', tint: '#ef6aa8',
+    id: 'lily', name: 'Lily Bomb', icon: 'puLily', price: 600, charge: 75,
+    method: 'lily', tint: '#ff5e9c',
     blurb: 'Lob a lily bomb that blasts a 3×3 crater in the board.',
   },
   cross: {
-    id: 'cross', name: 'Cross Strike', icon: '✳️', price: 750, charge: 80,
-    method: 'cross', tint: '#7be0ff',
+    id: 'cross', name: 'Cross Strike', icon: 'puCross', price: 750, charge: 80,
+    method: 'cross', tint: '#1ba8c9',
     blurb: 'Zap a full row and a full column at the same time.',
   },
   clear: {
-    id: 'clear', name: 'Big Vanish', icon: '✨', price: 700, charge: 80,
-    method: 'clear', tint: '#c79bff',
+    id: 'clear', name: 'Big Vanish', icon: 'puVanish', price: 700, charge: 80,
+    method: 'clear', tint: '#9a7bff',
     blurb: 'Vanish every tile of the most common kind on the board.',
   },
   tide: {
-    id: 'tide', name: 'Tidal Wave', icon: '🌊', price: 900, charge: 85,
-    method: 'tide', tint: '#3fb9d6',
+    id: 'tide', name: 'Tidal Wave', icon: 'puTide', price: 900, charge: 85,
+    method: 'tide', tint: '#2fb0d6',
     blurb: 'A wave sweeps in and washes away two whole rows.',
   },
   rainbow: {
-    id: 'rainbow', name: 'Rainbow Rush', icon: '🌈', price: 1100, charge: 95,
-    method: 'rainbow', tint: '#ff6a8a',
+    id: 'rainbow', name: 'Rainbow Rush', icon: 'puRainbow', price: 1100, charge: 95,
+    method: 'rainbow', tint: '#ff7e5f',
     blurb: 'Charm an entire color into dazzling rainbow pineapples.',
   },
 };

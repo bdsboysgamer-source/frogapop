@@ -5,6 +5,7 @@
 import { POWERUPS, POWERUP_ORDER, LOADOUT_SIZE } from '../../data/powerups.js';
 import { frogSVG } from '../characters/FrogArt.js';
 import { Sound } from '../../game/effects/Sound.js';
+import { icon } from '../ui/icons.js';
 
 export function mountShop(stage, controller) {
   const el = document.createElement('div');
@@ -16,9 +17,9 @@ export function mountShop(stage, controller) {
     el.innerHTML = `
       <div class="shop-bg"></div>
       <div class="shop-header">
-        <button class="btn btn-blue btn-round" id="backBtn">←</button>
+        <button class="btn btn-blue btn-round" id="backBtn">${icon('back', { size: 26 })}</button>
         <div class="shop-title">Scai's Stall</div>
-        <div class="coin-chip big">🪙 <b>${controller.coins}</b></div>
+        <div class="coin-chip big">${icon('coin', { size: 22 })}<b>${controller.coins}</b></div>
       </div>
 
       <div class="stall">
@@ -39,7 +40,7 @@ export function mountShop(stage, controller) {
         <div class="loadout-slots">
           ${[...Array(LOADOUT_SIZE)].map((_, i) => {
             const id = controller.loadout[i];
-            return id ? `<div class="lo-slot filled" style="--ptint:${POWERUPS[id].tint}">${POWERUPS[id].icon}</div>` : `<div class="lo-slot"></div>`;
+            return id ? `<div class="lo-slot filled" style="--ptint:${POWERUPS[id].tint}">${icon(POWERUPS[id].icon, { size: 30 })}</div>` : `<div class="lo-slot"></div>`;
           }).join('')}
         </div>
       </div>
@@ -67,9 +68,9 @@ export function mountShop(stage, controller) {
     const canAfford = controller.coins >= p.price;
     let action;
     if (!owned) {
-      action = `<button class="pw-buy ${canAfford ? '' : 'poor'}" data-buy="${id}">🪙 ${p.price}</button>`;
+      action = `<button class="pw-buy ${canAfford ? '' : 'poor'}" data-buy="${id}">${icon('coin', { size: 20 })} ${p.price}</button>`;
     } else if (equipped) {
-      action = `<button class="pw-equip on" data-equip="${id}">✓ Equipped</button>`;
+      action = `<button class="pw-equip on" data-equip="${id}">${icon('check', { size: 16 })} Equipped</button>`;
     } else {
       const full = controller.loadout.length >= LOADOUT_SIZE;
       action = `<button class="pw-equip ${full ? 'full' : ''}" data-equip="${id}">${full ? 'Loadout full' : 'Equip'}</button>`;
@@ -77,7 +78,7 @@ export function mountShop(stage, controller) {
     return `
       <div class="pw-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}" style="--ptint:${p.tint}">
         <div class="pw-badge">${p.price === 0 ? 'STARTER' : owned ? 'OWNED' : ''}</div>
-        <div class="pw-orb">${p.icon}</div>
+        <div class="pw-orb">${icon(p.icon, { size: 42 })}</div>
         <div class="pw-name">${p.name}</div>
         <div class="pw-blurb">${p.blurb}</div>
         ${action}

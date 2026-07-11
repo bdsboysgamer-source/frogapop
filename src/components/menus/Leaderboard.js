@@ -3,11 +3,12 @@
 
 import { fetchBoard, isOnlineAvailable } from '../../net/leaderboard.js';
 import { Sound } from '../../game/effects/Sound.js';
+import { icon } from '../ui/icons.js';
 
 const TABS = [
-  { mode: 'endless', sub: null, label: '♾️ Endless' },
-  { mode: 'timetrial', sub: null, label: '⏱️ Time Trial' },
-  { mode: 'daily', sub: () => new Date().toISOString().slice(0, 10), label: '📅 Daily' },
+  { mode: 'endless', sub: null, ic: 'endless', label: 'Endless' },
+  { mode: 'timetrial', sub: null, ic: 'timetrial', label: 'Time Trial' },
+  { mode: 'daily', sub: () => new Date().toISOString().slice(0, 10), ic: 'daily', label: 'Daily' },
 ];
 
 export function mountLeaderboard(stage, controller, params = {}) {
@@ -26,14 +27,14 @@ export function mountLeaderboard(stage, controller, params = {}) {
   el.innerHTML = `
     <div class="sheet-bg"></div>
     <div class="sheet-header">
-      <button class="btn btn-blue btn-round" id="backBtn">←</button>
-      <div class="sheet-title">🏆 Leaderboards</div>
+      <button class="btn btn-blue btn-round" id="backBtn">${icon('back', { size: 26 })}</button>
+      <div class="sheet-title">Leaderboards</div>
       <div style="width:52px;"></div>
     </div>
     <div class="lb-tabs" id="tabs">
       ${params.mode === 'level'
         ? `<button class="lb-tab active">${params.title || 'Level'}</button>`
-        : TABS.map((t, i) => `<button class="lb-tab ${i === active ? 'active' : ''}" data-tab="${i}">${t.label}</button>`).join('')}
+        : TABS.map((t, i) => `<button class="lb-tab ${i === active ? 'active' : ''}" data-tab="${i}">${icon(t.ic, { size: 18 })}${t.label}</button>`).join('')}
     </div>
     <div class="lb-status" id="status"></div>
     <div class="sheet-body"><div class="lb-list" id="list"></div></div>
@@ -59,13 +60,13 @@ export function mountLeaderboard(stage, controller, params = {}) {
     const online = await isOnlineAvailable();
     const { entries } = await fetchBoard({ mode: tab.mode, sub: tab.sub, limit: 25, account: controller.account });
     status.innerHTML = online
-      ? `🌐 Global rankings`
-      : `📱 This device only · <span class="lb-hint">sign in + deploy the server for global boards</span>`;
+      ? `${icon('globe', { size: 16 })} Global rankings`
+      : `This device only · <span class="lb-hint">sign in + deploy the server for global boards</span>`;
 
-    if (!entries.length) { list.innerHTML = `<div class="lb-empty">No scores yet — be the first! 🐸</div>`; return; }
+    if (!entries.length) { list.innerHTML = `<div class="lb-empty">No scores yet — be the first!</div>`; return; }
     list.innerHTML = entries.map((e, i) => {
       const rank = e.rank ?? i + 1;
-      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      const medal = rank === 1 ? icon('medalGold', { size: 26 }) : rank === 2 ? icon('medalSilver', { size: 26 }) : rank === 3 ? icon('medalBronze', { size: 26 }) : `#${rank}`;
       return `<div class="lb-row ${e.you ? 'you' : ''}">
         <span class="lb-rank">${medal}</span>
         <span class="lb-name">${escapeHTML(e.name || 'Anon')}</span>

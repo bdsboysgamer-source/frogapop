@@ -2,6 +2,7 @@
 // collect-objectives with live counts, and the combo banner.
 
 import { pieceIconHTML } from './pieceIcon.js';
+import { icon } from './icons.js';
 
 export class HUD {
   constructor(container, level) {
@@ -11,7 +12,7 @@ export class HUD {
     this.root = document.createElement('div');
     this.root.innerHTML = `
       <div class="hud-top">
-        <button class="btn btn-blue btn-round" id="pauseBtn" style="width:52px;height:52px;font-size:20px;align-self:center;">⏸</button>
+        <button class="btn btn-blue btn-round" id="pauseBtn" style="width:52px;height:52px;align-self:center;">${icon('pause', { size: 22 })}</button>
         <div class="hud-pill" style="flex:0 0 92px;">
           <div class="hud-label">Moves</div>
           <div class="hud-value" id="movesVal">${level.moves}</div>
@@ -21,7 +22,7 @@ export class HUD {
           <div class="hud-value" id="scoreVal" style="font-size:22px;">0</div>
           <div class="score-bar-wrap">
             <div class="score-bar" id="scoreBar"></div>
-            ${level.stars.map((s, i) => `<div class="score-star" id="star${i}" style="left:${(s / this.maxScore) * 100}%;">⭐</div>`).join('')}
+            ${level.stars.map((s, i) => `<div class="score-star" id="star${i}" style="left:${(s / this.maxScore) * 100}%;">${icon('star', { size: 20 })}</div>`).join('')}
           </div>
         </div>
       </div>
@@ -89,7 +90,7 @@ export class HUD {
       const countEl = chip.querySelector('.obj-count');
       const done = got >= needed;
       if (!done) allDone = false;
-      const label = done ? `<span class="obj-check">✔</span>` : `${got}/${needed}`;
+      const label = done ? `<span class="obj-check">${icon('check', { size: 16 })}</span>` : `${got}/${needed}`;
       if (countEl.innerHTML !== label) {
         countEl.innerHTML = label;
         chip.classList.toggle('done', done);

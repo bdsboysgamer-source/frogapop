@@ -17,8 +17,20 @@ import { pieceIconHTML } from '../components/ui/pieceIcon.js';
 import { POWERUPS } from '../data/powerups.js';
 import { Sound } from './effects/Sound.js';
 import { ParticleSystem } from './effects/Particles.js';
-import { splitmix } from '../components/menus/mapBiomes.js';
 import { submitScore } from '../net/leaderboard.js';
+import { icon } from '../components/ui/icons.js';
+
+function splitmix(seed) {
+  let s = seed | 0;
+  return function () {
+    s = (s + 0x9e3779b9) | 0;
+    let z = s;
+    z = Math.imul(z ^ (z >>> 16), 0x85ebca6b);
+    z = Math.imul(z ^ (z >>> 13), 0xc2b2ae35);
+    z = (z ^ (z >>> 16)) >>> 0;
+    return z / 4294967296;
+  };
+}
 
 const TIME_TRIAL_SECONDS = 60;
 
@@ -67,7 +79,7 @@ export function mountGameScreen(stage, controller, params = {}) {
     top.remove(); // HUD builds its own top rows
   } else {
     top.innerHTML = `
-      <button class="btn btn-blue btn-round" id="pauseBtn" style="width:52px;height:52px;font-size:20px;align-self:center;">⏸</button>
+      <button class="btn btn-blue btn-round" id="pauseBtn" style="width:52px;height:52px;align-self:center;">${icon('pause', { size: 22 })}</button>
       <div class="hud-pill" style="flex:0 0 auto;min-width:96px;">
         <div class="hud-label">${mode === 'timetrial' ? 'Time' : 'Run'}</div>
         <div class="hud-value" id="timerVal" style="font-size:24px;">${mode === 'timetrial' ? formatTime(state.timeLeft) : '∞'}</div>
@@ -82,7 +94,7 @@ export function mountGameScreen(stage, controller, params = {}) {
 
   const coinBar = document.createElement('div');
   coinBar.className = 'game-coinbar';
-  coinBar.innerHTML = `<span class="coin-chip">🪙 <b id="coinVal">${controller.coins}</b></span>`;
+  coinBar.innerHTML = `<span class="coin-chip">${icon('coin', { size: 18 })}<b id="coinVal">${controller.coins}</b></span>`;
   col.appendChild(coinBar);
 
   /* ---------- board ---------- */
@@ -110,10 +122,10 @@ export function mountGameScreen(stage, controller, params = {}) {
       ${loadout.length ? loadout.map((id) => {
         const p = POWERUPS[id];
         return `<button class="frog-power" data-power="${id}" style="--fill:0%;--ptint:${p.tint};" title="${p.name}">
-          <span class="fp-inner">${p.icon}</span>
+          <span class="fp-inner">${icon(p.icon, { size: 34 })}</span>
           <span class="fp-label">${p.name.split(' ')[0]}</span>
         </button>`;
-      }).join('') : `<div class="no-powers">No power-ups equipped — visit Scai's stall! 🛖</div>`}
+      }).join('') : `<div class="no-powers">No power-ups equipped — visit Scai's stall!</div>`}
     </div>
   `;
   col.appendChild(bottom);
@@ -245,15 +257,15 @@ export function mountGameScreen(stage, controller, params = {}) {
       <div style="width:84px;">${frogSVG(frogId, { width: 84 })}</div>
       <button class="btn btn-green" id="resumeBtn">RESUME</button>
       <div class="settings-row">
-        <button class="btn btn-blue btn-round" id="sndBtn">${Sound.muted ? '🔇' : '🔊'}</button>
-        ${mode === 'level' || mode === 'daily' ? `<button class="btn btn-pink btn-small" id="restartBtn">↺ RETRY</button>` : ''}
-        <button class="btn btn-blue btn-small" id="exitBtn">🏠 EXIT</button>
+        <button class="btn btn-blue btn-round" id="sndBtn">${icon(Sound.muted ? 'soundOff' : 'soundOn', { size: 24 })}</button>
+        ${mode === 'level' || mode === 'daily' ? `<button class="btn btn-pink btn-small" id="restartBtn">${icon('retry', { size: 20 })} RETRY</button>` : ''}
+        <button class="btn btn-blue btn-small" id="exitBtn">${icon('home', { size: 20 })} EXIT</button>
       </div>`);
     ov.querySelector('#resumeBtn').addEventListener('click', () => {
       Sound.button(); closeOverlay(ov);
       if (state.started && !state.ended) { boardView.enabled = true; if (mode === 'timetrial') startTimer(); }
     });
-    ov.querySelector('#sndBtn').addEventListener('click', (e) => { const m = Sound.toggleMute(); e.target.textContent = m ? '🔇' : '🔊'; if (!m) Sound.button(); });
+    ov.querySelector('#sndBtn').addEventListener('click', () => { const m = Sound.toggleMute(); ov.querySelector('#sndBtn').innerHTML = icon(m ? 'soundOff' : 'soundOn', { size: 24 }); if (!m) Sound.button(); });
     ov.querySelector('#restartBtn')?.addEventListener('click', () => { Sound.button(); restart(); });
     ov.querySelector('#exitBtn').addEventListener('click', () => { Sound.button(); exit(); });
   });
@@ -370,14 +382,14 @@ export function mountGameScreen(stage, controller, params = {}) {
     const next = mode === 'level' ? LEVELS.find((l) => l.id === level.id + 1) : null;
     const ov = overlay(`
       <div class="result-title">${mode === 'daily' ? 'DAILY DONE!' : 'VICTORY!'}</div>
-      ${cfg.useObjectives && mode !== 'daily' ? `<div class="stars-row">${[0, 1, 2].map((i) => `<span class="big-star ${i === 1 ? 'mid' : ''} ${i < stars ? '' : 'dim'}" style="animation-delay:${0.3 + i * 0.35}s">⭐</span>`).join('')}</div>` : ''}
+      ${cfg.useObjectives && mode !== 'daily' ? `<div class="stars-row">${[0, 1, 2].map((i) => `<span class="big-star ${i === 1 ? 'mid' : ''} ${i < stars ? '' : 'dim'}" style="animation-delay:${0.3 + i * 0.35}s">${icon('star', { size: i === 1 ? 66 : 52 })}</span>`).join('')}</div>` : ''}
       <div class="result-score">${state.score.toLocaleString()} pts</div>
-      <div class="coin-reward">+${coins} 🪙</div>
+      <div class="coin-reward">+${coins} ${icon('coin', { size: 26 })}</div>
       <div class="result-sub">"${frogLine(frogId, 'win')}"</div>
       <div class="settings-row" style="flex-wrap:wrap;justify-content:center;">
-        <button class="btn btn-blue btn-small" id="exitBtn">${mode === 'level' ? '🗺️ MAP' : '🏠 HOME'}</button>
-        <button class="btn btn-pink btn-small" id="lbBtn">🏆 RANKS</button>
-        ${next ? `<button class="btn btn-green pulse btn-small" id="nextBtn">NEXT ▶</button>` : ''}
+        <button class="btn btn-blue btn-small" id="exitBtn">${icon(mode === 'level' ? 'adventure' : 'home', { size: 20 })} ${mode === 'level' ? 'MAP' : 'HOME'}</button>
+        <button class="btn btn-pink btn-small" id="lbBtn">${icon('trophy', { size: 20 })} RANKS</button>
+        ${next ? `<button class="btn btn-green pulse btn-small" id="nextBtn">NEXT ${icon('next', { size: 18 })}</button>` : ''}
       </div>
     `);
     ov.querySelectorAll('.big-star:not(.dim)').forEach((s, i) => { s.classList.add('slam'); setTimeout(() => Sound.star(), 350 + i * 350); });
@@ -394,8 +406,8 @@ export function mountGameScreen(stage, controller, params = {}) {
       <div class="result-sub">"${frogLine(frogId, 'lose')}"</div>
       <div class="result-score">${state.score.toLocaleString()} pts</div>
       <div class="settings-row">
-        <button class="btn btn-blue btn-small" id="exitBtn">${mode === 'level' ? '🗺️ MAP' : '🏠 HOME'}</button>
-        <button class="btn btn-green pulse" id="retryBtn">↺ RETRY</button>
+        <button class="btn btn-blue btn-small" id="exitBtn">${icon(mode === 'level' ? 'adventure' : 'home', { size: 20 })} ${mode === 'level' ? 'MAP' : 'HOME'}</button>
+        <button class="btn btn-green pulse" id="retryBtn">${icon('retry', { size: 22 })} RETRY</button>
       </div>
     `);
     ov.querySelector('#retryBtn').addEventListener('click', () => { Sound.button(); restart(); });
@@ -408,14 +420,14 @@ export function mountGameScreen(stage, controller, params = {}) {
     const bestVal = mode === 'endless' ? controller.saveData.endless.best : controller.saveData.timetrial.best;
     const ov = overlay(`
       <div class="result-title">${label}</div>
-      ${isBest ? `<div class="best-badge">🏅 NEW BEST!</div>` : ''}
+      ${isBest ? `<div class="best-badge">${icon('medalGold', { size: 20 })} NEW BEST!</div>` : ''}
       <div class="result-score">${state.score.toLocaleString()} pts</div>
       <div class="result-sub">Best: ${bestVal.toLocaleString()}</div>
-      <div class="coin-reward">+${coins} 🪙</div>
+      <div class="coin-reward">+${coins} ${icon('coin', { size: 26 })}</div>
       <div class="settings-row" style="flex-wrap:wrap;justify-content:center;">
-        <button class="btn btn-blue btn-small" id="homeBtn">🏠 HOME</button>
-        <button class="btn btn-pink btn-small" id="lbBtn">🏆 RANKS</button>
-        <button class="btn btn-green pulse btn-small" id="againBtn">↺ AGAIN</button>
+        <button class="btn btn-blue btn-small" id="homeBtn">${icon('home', { size: 20 })} HOME</button>
+        <button class="btn btn-pink btn-small" id="lbBtn">${icon('trophy', { size: 20 })} RANKS</button>
+        <button class="btn btn-green pulse btn-small" id="againBtn">${icon('retry', { size: 20 })} AGAIN</button>
       </div>
     `);
     ov.querySelector('#homeBtn').addEventListener('click', () => { Sound.button(); controller.gotoMenu(); });

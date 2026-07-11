@@ -645,7 +645,7 @@ export class BoardView {
     const wave = this.board.froggyRainbow(targetType);
     this.shake.add(0.5);
     
-    this.floaters.add(this.w / 2, this.h / 2, `🌈 RAINBOW ${targetType}!`, { 
+    this.floaters.add(this.w / 2, this.h / 2, `RAINBOW ${targetType}!`, {
       color: '#b48cff', size: 28, stroke: '#1e5a8a', life: 1.2 
     });
     
@@ -708,7 +708,7 @@ export class BoardView {
     const wave = this.board.froggyClear(targetType);
     this.shake.add(0.3);
     
-    this.floaters.add(this.w / 2, this.h / 2, `✨ CLEAR ${targetType}!`, { 
+    this.floaters.add(this.w / 2, this.h / 2, `CLEAR ${targetType}!`, {
       color: '#ffffff', size: 28, stroke: '#1e5a8a', life: 1.2 
     });
     
@@ -757,7 +757,7 @@ export class BoardView {
     this.busy = true;
     Sound.frogPower();
     
-    this.floaters.add(this.w / 2, this.h / 2, '🔀 SHUFFLE!', { 
+    this.floaters.add(this.w / 2, this.h / 2, 'SHUFFLE!', {
       color: '#ffffff', size: 32, stroke: '#1e5a8a', life: 1.2 
     });
     
@@ -827,7 +827,7 @@ export class BoardView {
     this.busy = true; Sound.frogPower();
     const wave = this.board.lilyBomb();
     this.shake.add(0.5);
-    await this._finishPower(wave, 55, '💣 LILY BOMB!', '#ffd24d');
+    await this._finishPower(wave, 55, 'LILY BOMB!', '#ffd24d');
     this.busy = false; return true;
   }
 
@@ -836,7 +836,7 @@ export class BoardView {
     this.busy = true; Sound.frogPower();
     const wave = this.board.crossStrike();
     this.shake.add(0.45);
-    await this._finishPower(wave, 55, '✳️ CROSS STRIKE!', '#7ee0ff');
+    await this._finishPower(wave, 55, 'CROSS STRIKE!', '#7ee0ff');
     this.busy = false; return true;
   }
 
@@ -845,7 +845,7 @@ export class BoardView {
     this.busy = true; Sound.frogPower();
     const wave = this.board.tidalWave();
     this.shake.add(0.55);
-    await this._finishPower(wave, 55, '🌊 TIDAL WAVE!', '#6ad4ff');
+    await this._finishPower(wave, 55, 'TIDAL WAVE!', '#6ad4ff');
     this.busy = false; return true;
   }
 
