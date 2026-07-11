@@ -790,6 +790,65 @@ export class BoardView {
     return true;
   }
 
+  /* shared finisher for the direct-clear power-ups below */
+  async _finishPower(wave, perPiece, label, color) {
+    for (const fx of wave.effects || []) {
+      if (fx.kind === 'rocketH' || fx.kind === 'rocketV') {
+        Sound.rocket(); this.shake.add(0.3);
+        this.flashes.push({ kind: fx.kind, r: fx.r, c: fx.c, age: 0, life: 0.4 });
+      } else if (fx.kind === 'bomb') {
+        Sound.bomb(); this.shake.add(0.5);
+        this.flashes.push({ kind: 'bomb', r: fx.r, c: fx.c, age: 0, life: 0.5 });
+        this.particles.ring(this.cellX(fx.c), this.cellY(fx.r), '#ffb037', { radius: 60 });
+      }
+    }
+    if (label) this.floaters.add(this.w / 2, this.h / 2, label, { color: color || '#fff', size: 30, stroke: '#1e5a8a', life: 1.1 });
+    const pops = [];
+    (wave.cleared || []).forEach((x, i) => {
+      const sp = this.sprites.get(x.piece);
+      if (sp) pops.push(this.popSprite(sp, i * 0.012, x.piece));
+    });
+    await Promise.all(pops.length ? pops : [this.wait(50)]);
+    const points = (wave.cleared?.length || 0) * perPiece;
+    if (points > 0) {
+      this.events.onScore?.(points);
+      const col = {};
+      for (const { piece } of wave.cleared || []) col[piece.type] = (col[piece.type] ?? 0) + 1;
+      this.events.onCollect?.(col);
+    }
+    await this.playGravity();
+    const next = this.board.resolveWave();
+    if (next) await this.runCascades(next);
+    else { if (!this.board.hasAnyMove()) await this.playShuffle(); this.events.onSettled?.(); }
+  }
+
+  async playLilyBomb() {
+    if (this.busy) return false;
+    this.busy = true; Sound.frogPower();
+    const wave = this.board.lilyBomb();
+    this.shake.add(0.5);
+    await this._finishPower(wave, 55, '💣 LILY BOMB!', '#ffd24d');
+    this.busy = false; return true;
+  }
+
+  async playCrossStrike() {
+    if (this.busy) return false;
+    this.busy = true; Sound.frogPower();
+    const wave = this.board.crossStrike();
+    this.shake.add(0.45);
+    await this._finishPower(wave, 55, '✳️ CROSS STRIKE!', '#7ee0ff');
+    this.busy = false; return true;
+  }
+
+  async playTidalWave() {
+    if (this.busy) return false;
+    this.busy = true; Sound.frogPower();
+    const wave = this.board.tidalWave();
+    this.shake.add(0.55);
+    await this._finishPower(wave, 55, '🌊 TIDAL WAVE!', '#6ad4ff');
+    this.busy = false; return true;
+  }
+
   hopTo(tx, ty) {
     const fj = this.frogJump;
     const sx = fj.x, sy = fj.y;

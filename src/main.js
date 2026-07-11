@@ -3,6 +3,7 @@
 // game content lives in a centered column.
 
 import { GameController } from './game/GameController.js';
+import { applySettings } from './game/settings.js';
 
 // Register service worker for PWA offline support
 if ('serviceWorker' in navigator) {
@@ -15,6 +16,7 @@ stage.className = 'stage';
 app.appendChild(stage);
 
 const controller = new GameController(stage);
+applySettings(controller);
 controller.gotoMenu();
 
 // dev/debug handle (also used by automated smoke tests)

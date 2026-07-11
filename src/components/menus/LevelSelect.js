@@ -222,6 +222,7 @@ export function mountLevelSelect(stage, controller) {
         </div>
       </div>
       <canvas class="map-particles"></canvas>
+      <div class="world-banner" id="worldBanner"><span class="wb-icon"></span><span class="wb-name"></span><small class="wb-tag">now entering</small></div>
       ${headerHTML()}`;
 
     scrollEl = root.querySelector('.map-scroll');
@@ -315,6 +316,7 @@ export function mountLevelSelect(stage, controller) {
 
     const near = t < 0.5 ? a : b;
     if (near.id !== curWorldId) {
+      const firstScene = curWorldId === null;
       curWorldId = near.id;
       // path colours: body + dotted centre line
       const fill = root.querySelector('.mp-fill');
@@ -327,7 +329,21 @@ export function mountLevelSelect(stage, controller) {
       const wl = root.querySelector('#mapWorldName');
       if (wl) wl.textContent = `${near.icon} ${near.name}`;
       syncSelectorActive(near.id);
+      if (!firstScene) showWorldBanner(near); // biome-entry flourish
     }
+  }
+
+  /* a brief "now entering <biome>" banner when crossing worlds */
+  let bannerTimer = null;
+  function showWorldBanner(theme) {
+    const b = root.querySelector('#worldBanner');
+    if (!b) return;
+    b.querySelector('.wb-icon').textContent = theme.icon;
+    b.querySelector('.wb-name').textContent = theme.name;
+    b.style.setProperty('--wbtint', theme.node.c2);
+    b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => b.classList.remove('show'), 2000);
   }
 
   /* ============================================================

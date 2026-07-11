@@ -459,8 +459,82 @@ export class Board {
       }
       attempts++;
     } while ((this.findMatchGroups().length > 0 || !this.hasAnyMove()) && attempts < 30);
-    
+
     return { success: true, attempts };
+  }
+
+  /* -------- extra power-up effects (Lily Bomb / Cross Strike / Tidal Wave) -------- */
+
+  /** count needed-objective pieces in a row (bias power-ups toward goals) */
+  _neededInRow(r) {
+    let n = 0;
+    for (let c = 0; c < this.cols; c++) { const p = this.at(r, c); if (p && this.neededTypes[p.type]) n++; }
+    return n;
+  }
+  _neededInCol(c) {
+    let n = 0;
+    for (let r = 0; r < this.rows; r++) { const p = this.at(r, c); if (p && this.neededTypes[p.type]) n++; }
+    return n;
+  }
+  _collect(clearedKeys, effects) {
+    const cleared = [...clearedKeys].map((key) => {
+      const { r, c } = keyToCell(key);
+      return { r, c, piece: this.grid[r][c] };
+    }).filter((x) => x.piece);
+    for (const { r, c } of cleared) this.grid[r][c] = null;
+    return { cleared, created: [], effects };
+  }
+
+  /** LILY BOMB: blast a 3×3 crater, centred on a dense/needed spot. */
+  lilyBomb() {
+    let best = { r: 1, c: 1, score: -1 };
+    for (let r = 1; r < this.rows - 1; r++)
+      for (let c = 1; c < this.cols - 1; c++) {
+        let s = 0;
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            const p = this.at(r + dr, c + dc);
+            if (p) s += this.neededTypes[p.type] ? 2 : 1;
+          }
+        if (s > best.score) best = { r, c, score: s };
+      }
+    const keys = new Set();
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++)
+        if (this.at(best.r + dr, best.c + dc)) keys.add(`${best.r + dr},${best.c + dc}`);
+    const effects = [{ kind: 'bomb', r: best.r, c: best.c }];
+    this.expandSpecials(keys, effects);
+    return { ...this._collect(keys, effects), center: { r: best.r, c: best.c } };
+  }
+
+  /** CROSS STRIKE: clear the fullest needed row + column. */
+  crossStrike() {
+    let br = 0, bc = 0, bs = -1;
+    for (let r = 0; r < this.rows; r++) { const s = this._neededInRow(r); if (s > bs) { bs = s; br = r; } }
+    bs = -1;
+    for (let c = 0; c < this.cols; c++) { const s = this._neededInCol(c); if (s > bs) { bs = s; bc = c; } }
+    const keys = new Set();
+    for (let c = 0; c < this.cols; c++) if (this.at(br, c)) keys.add(`${br},${c}`);
+    for (let r = 0; r < this.rows; r++) if (this.at(r, bc)) keys.add(`${r},${bc}`);
+    const effects = [{ kind: 'rocketH', r: br, c: bc }, { kind: 'rocketV', r: br, c: bc }];
+    this.expandSpecials(keys, effects);
+    return this._collect(keys, effects);
+  }
+
+  /** TIDAL WAVE: sweep away the two fullest needed rows. */
+  tidalWave() {
+    const ranked = [];
+    for (let r = 0; r < this.rows; r++) ranked.push({ r, s: this._neededInRow(r) });
+    ranked.sort((a, b) => b.s - a.s);
+    const rows = ranked.slice(0, 2).map((x) => x.r);
+    const keys = new Set();
+    const effects = [];
+    for (const r of rows) {
+      effects.push({ kind: 'rocketH', r, c: (this.cols / 2) | 0 });
+      for (let c = 0; c < this.cols; c++) if (this.at(r, c)) keys.add(`${r},${c}`);
+    }
+    this.expandSpecials(keys, effects);
+    return this._collect(keys, effects);
   }
 
   mostCommonType() {
