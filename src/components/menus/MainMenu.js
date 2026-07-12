@@ -52,6 +52,7 @@ export function mountMainMenu(stage, controller) {
     </div>
 
     <div class="hub-utilbar">
+      ${util('uIndex', 'pineapple', 'Index')}
       ${util('uShop', 'shop', 'Shop')}
       ${util('uRanks', 'trophy', 'Ranks')}
       ${util('uAch', 'medalGold', 'Trophies')}
@@ -72,6 +73,7 @@ export function mountMainMenu(stage, controller) {
   el.querySelector('#tEndless').addEventListener('click', () => go(() => controller.gotoEndless()));
   el.querySelector('#tTime').addEventListener('click', () => go(() => controller.gotoTimeTrial()));
   el.querySelector('#tDaily').addEventListener('click', () => go(() => controller.gotoDaily()));
+  el.querySelector('#uIndex').addEventListener('click', () => go(() => controller.gotoIndex()));
   el.querySelector('#uShop').addEventListener('click', () => go(() => controller.gotoShop()));
   el.querySelector('#uRanks').addEventListener('click', () => go(() => controller.gotoLeaderboard()));
   el.querySelector('#uAch').addEventListener('click', () => go(() => controller.gotoAchievements()));

@@ -175,6 +175,35 @@ export const PIECE_TYPES = {
   },
 };
 
+// Short, fun flavour text for the Pineapple Index.
+export const PINEAPPLE_DESC = {
+  golden:  'The original sun-soaked classic. Wears the crown for a reason.',
+  pink:    'Sugar-sweet and proud of it. Bakes friendship, not enemies.',
+  ice:     'Keeps its cool under pressure. Never sweats a combo.',
+  fire:    'Hot-headed but big-hearted. Handle with oven mitts.',
+  jungle:  'Raised by toucans. Absolutely feral, weirdly polite.',
+  crystal: 'So clear you can see its dreams — mostly of matching.',
+  frost:   'Ear-muffed and unbothered. Winter is its whole personality.',
+  pearl:   'Found in a deep-sea clam. Fancy, glossy, a little smug.',
+  aqua:    'Blows bubbles instead of talking. Very go-with-the-flow.',
+  abyss:   'Lives where the light gives up. Brought its own lamp.',
+  ember:   'Still glowing from last week’s bonfire. Smells like campfire.',
+  wild:    'Explorer at heart. Has definitely eaten a bug on purpose.',
+  spice:   'One bite and you’ll cry happy tears. Bring milk.',
+  thorn:   'Prickly outside, prickly inside — but fiercely loyal.',
+  blaze:   'Turned the heat up and lost the dial. Pure chaos energy.',
+  cosmic:  'Made of stardust and bad decisions. Orbits the snack table.',
+  stellar: 'A shooting star that decided to be a fruit instead.',
+  lunar:   'Perpetually one nap away from greatness. Zzz…',
+  nova:    'Shines so bright it needs shades. Gave them to Gleam.',
+  eclipse: 'Mysterious, moody, and always slightly in shadow.',
+  prism:   'Splits sunlight into pure joy. A rainbow with a face.',
+  shimmer: 'Twinkles when it’s happy — which is always. Sparkle overload.',
+  gleam:   'Too cool for the room. Shades on, indoors, at night.',
+  aurora:  'Dances like the northern lights. Never steps on toes.',
+  glimmer: 'Pure light in pineapple form. Wears a tiara, obviously.',
+};
+
 // The five species that spawn on the board (basic types for early levels)
 export const SPAWNABLE = ['golden', 'pink', 'ice', 'fire', 'jungle'];
 

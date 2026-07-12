@@ -1,4 +1,4 @@
-import{i as n,S as m,c as p,e as L}from"./index-DEI2rJDN.js";const a=[{mode:"endless",sub:null,ic:"endless",label:"Endless"},{mode:"timetrial",sub:null,ic:"timetrial",label:"Time Trial"},{mode:"daily",sub:()=>new Date().toISOString().slice(0,10),ic:"daily",label:"Daily"}];function T(b,o,l={}){const s=document.createElement("div");s.className="screen sheet-screen",b.appendChild(s);let i=0;if(l.mode){const e=a.findIndex(t=>t.mode===l.mode);e>=0&&(i=e)}const f=l.sub;s.innerHTML=`
+import{i as n,S as m,c as p,e as L}from"./index-DXORqUkk.js";const a=[{mode:"endless",sub:null,ic:"endless",label:"Endless"},{mode:"timetrial",sub:null,ic:"timetrial",label:"Time Trial"},{mode:"daily",sub:()=>new Date().toISOString().slice(0,10),ic:"daily",label:"Daily"}];function T(b,o,l={}){const s=document.createElement("div");s.className="screen sheet-screen",b.appendChild(s);let i=0;if(l.mode){const e=a.findIndex(t=>t.mode===l.mode);e>=0&&(i=e)}const f=l.sub;s.innerHTML=`
     <div class="sheet-bg"></div>
     <div class="sheet-header">
       <button class="btn btn-blue btn-round" id="backBtn">${n("back",{size:26})}</button>

@@ -201,6 +201,7 @@ export class GameController {
   async gotoSettings() { const { mountSettings } = await import('../components/menus/Settings.js'); this.goto(mountSettings); }
   async gotoLeaderboard(params) { const { mountLeaderboard } = await import('../components/menus/Leaderboard.js'); this.goto(mountLeaderboard, params); }
   async gotoAchievements() { const { mountAchievements } = await import('../components/menus/Achievements.js'); this.goto(mountAchievements); }
+  async gotoIndex() { const { mountPineappleIndex } = await import('../components/menus/PineappleIndex.js'); this.goto(mountPineappleIndex); }
 
   buttonSound() { Sound.button(); }
 }
