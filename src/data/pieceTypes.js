@@ -2,17 +2,18 @@
 // Adding a new pineapple = add an entry here; art, board logic,
 // objectives and HUD icons all pick it up automatically.
 //
-// `deco` gives every species a unique accessory/emblem (drawn in
-// PieceArt.js) so no two pineapples are hard to tell apart — silhouette
-// and details distinguish them, not just colour.
+// Palette rule: any set of pineapples that can spawn together (a world's
+// 5 types + the "bridge" types that blend in) uses SIX clearly different
+// colour families — so nothing looks alike at a glance. On top of that,
+// every species has a unique `deco` accessory (drawn in PieceArt.js).
 
 export const PIECE_TYPES = {
   // ================================================================
-  // WORLD 1 — Sunny Shores (tropical basics)
+  // WORLD 1 — Sunny Shores :  gold · pink · cyan · red · green
   // ================================================================
   golden: {
     id: 'golden', name: 'Golden Pineapple', deco: 'crown',
-    body: '#ffc53d', bodyDark: '#e8930c', bodyLight: '#ffe9a3',
+    body: '#ffc53d', bodyDark: '#e0890a', bodyLight: '#ffe6a0',
     leaf: '#58bb3d', leafDark: '#2e8b2e', cheek: '#ff9d5c', mood: 'happy',
   },
   pink: {
@@ -23,154 +24,154 @@ export const PIECE_TYPES = {
   },
   ice: {
     id: 'ice', name: 'Ice Pineapple', deco: 'beanie',
-    body: '#7fd4f5', bodyDark: '#2f96cf', bodyLight: '#d8f4ff',
-    leaf: '#4fc3e8', leafDark: '#2380b8', cheek: '#8fc9ff', mood: 'cool',
+    body: '#33cfe6', bodyDark: '#1493b2', bodyLight: '#a6eef7', // cyan
+    leaf: '#22b6d0', leafDark: '#147e98', cheek: '#7fe0f0', mood: 'cool',
   },
   fire: {
     id: 'fire', name: 'Fire Pineapple', deco: 'mohawk',
-    body: '#ff5a34', bodyDark: '#d02c0e', bodyLight: '#ffa480', // redder orange (vs blaze's gold-orange)
+    body: '#ff5a34', bodyDark: '#d02c0e', bodyLight: '#ffa480', // red-orange
     leaf: '#ff8f37', leafDark: '#d66510', cheek: '#ff4023', mood: 'fierce',
     embers: true, glow: 'rgba(255, 100, 50, 0.5)',
   },
   jungle: {
     id: 'jungle', name: 'Jungle Pineapple', deco: 'flower',
-    body: '#8bd44a', bodyDark: '#4e9a1f', bodyLight: '#d2f0a8',
+    body: '#7bc73f', bodyDark: '#4a9a1c', bodyLight: '#c6ec96', // grass green
     leaf: '#2e8b4f', leafDark: '#1c6338', cheek: '#5cb838', mood: 'wild',
   },
 
   // ================================================================
-  // WORLD 2 — Crystal Depths (cold / water / gem)
+  // WORLD 2 — Crystal Depths :  white · periwinkle · peach · teal · navy
   // ================================================================
   crystal: {
     id: 'crystal', name: 'Crystal Pineapple', deco: 'gemspike',
-    body: '#c8ecff', bodyDark: '#7fb8e0', bodyLight: '#ffffff',
-    leaf: '#a8d8ea', leafDark: '#5a9ab8', cheek: '#d4e8f0', mood: 'crystalline',
-    crystal: true, glow: 'rgba(160, 210, 255, 0.5)', pattern: 'diamond',
+    body: '#e9f2fb', bodyDark: '#bccddd', bodyLight: '#ffffff', // near-white
+    leaf: '#b8d4e6', leafDark: '#7fa0b8', cheek: '#d4e4f0', mood: 'crystalline',
+    crystal: true, glow: 'rgba(190, 215, 240, 0.5)', pattern: 'diamond',
   },
   frost: {
     id: 'frost', name: 'Frost Pineapple', deco: 'earmuffs',
-    body: '#a3d6f2', bodyDark: '#4a98cf', bodyLight: '#dcf3ff', // clearer icy blue
-    leaf: '#7ec2e6', leafDark: '#3f86ae', cheek: '#a6d6ef', mood: 'cool',
-    crystal: true, glow: 'rgba(150, 205, 255, 0.4)',
+    body: '#9fb2f0', bodyDark: '#6577d8', bodyLight: '#d6ddff', // periwinkle
+    leaf: '#8496e8', leafDark: '#5566c0', cheek: '#b0bcf5', mood: 'cool',
+    crystal: true, glow: 'rgba(160, 175, 240, 0.45)',
   },
   pearl: {
     id: 'pearl', name: 'Pearl Pineapple', deco: 'pearls',
-    body: '#ffd7cc', bodyDark: '#e0a08e', bodyLight: '#fff0ea', // warm peach pearl
-    leaf: '#f0c0b0', leafDark: '#c88a76', cheek: '#ffc2b0', mood: 'sweet',
-    glow: 'rgba(255, 200, 180, 0.45)', pattern: 'shimmer',
+    body: '#ffcfae', bodyDark: '#e09e70', bodyLight: '#fff0e2', // peach
+    leaf: '#f0bf9e', leafDark: '#c88a64', cheek: '#ffbf9e', mood: 'sweet',
+    glow: 'rgba(255, 195, 165, 0.45)', pattern: 'shimmer',
   },
   aqua: {
     id: 'aqua', name: 'Aqua Pineapple', deco: 'bubbles',
-    body: '#3fd0c8', bodyDark: '#159a9a', bodyLight: '#a6f0ea',
-    leaf: '#2bbfb0', leafDark: '#127a78', cheek: '#7ce8dc', mood: 'cool',
-    glow: 'rgba(60, 210, 200, 0.45)',
+    body: '#1fbf9f', bodyDark: '#0d8a70', bodyLight: '#82e6d0', // teal
+    leaf: '#15ad90', leafDark: '#0b7860', cheek: '#6fe0c8', mood: 'cool',
+    glow: 'rgba(40, 200, 170, 0.45)',
   },
   abyss: {
     id: 'abyss', name: 'Abyss Pineapple', deco: 'angler',
-    body: '#3f4d78', bodyDark: '#232f52', bodyLight: '#7482aa',
-    leaf: '#33436a', leafDark: '#18244a', cheek: '#6272a0', mood: 'mysterious',
-    glow: 'rgba(70, 90, 150, 0.5)', shadow: true,
+    body: '#2f3f70', bodyDark: '#19244a', bodyLight: '#6474a2', // navy
+    leaf: '#293a64', leafDark: '#15224a', cheek: '#556394', mood: 'mysterious',
+    glow: 'rgba(60, 80, 145, 0.5)', shadow: true,
   },
 
   // ================================================================
-  // WORLD 3 — Ember Wilds (fire / nature / spice)
+  // WORLD 3 — Ember Wilds :  brown · mustard · red · forest · orange
   // ================================================================
   ember: {
     id: 'ember', name: 'Ember Pineapple', deco: 'smoke',
-    body: '#a84420', bodyDark: '#6a2408', bodyLight: '#d07a3c', // deep rust/brown
-    leaf: '#8a3a14', leafDark: '#571f06', cheek: '#c86636', mood: 'fierce',
-    embers: true, glow: 'rgba(170, 70, 25, 0.5)',
+    body: '#9a4a22', bodyDark: '#5e290c', bodyLight: '#c67a44', // dark brown
+    leaf: '#7e3a16', leafDark: '#4e2208', cheek: '#bf6636', mood: 'fierce',
+    embers: true, glow: 'rgba(170, 80, 30, 0.5)',
   },
   wild: {
     id: 'wild', name: 'Wild Pineapple', deco: 'safari',
-    body: '#cfa03a', bodyDark: '#8f6e18', bodyLight: '#ecce84',
-    leaf: '#7a9a30', leafDark: '#4a6a18', cheek: '#b09050', mood: 'wild',
+    body: '#b6d92e', bodyDark: '#7fa018', bodyLight: '#dcef8a', // lime (breaks the warm cluster)
+    leaf: '#8fb020', leafDark: '#5e7810', cheek: '#c8e05a', mood: 'wild',
   },
   spice: {
     id: 'spice', name: 'Spice Pineapple', deco: 'chili',
-    body: '#f5393f', bodyDark: '#c10f1f', bodyLight: '#ff7d72', // bright chilli red
-    leaf: '#e03038', leafDark: '#a8121c', cheek: '#ff6a64', mood: 'fierce',
-    glow: 'rgba(245, 55, 60, 0.45)',
+    body: '#ee2f36', bodyDark: '#b60f18', bodyLight: '#ff7068', // pure red
+    leaf: '#d82a30', leafDark: '#a01218', cheek: '#ff645c', mood: 'fierce',
+    glow: 'rgba(240, 45, 55, 0.45)',
   },
   thorn: {
     id: 'thorn', name: 'Thorn Pineapple', deco: 'thorns',
-    body: '#5f8a3a', bodyDark: '#3c5e20', bodyLight: '#93bd68', // deeper green
-    leaf: '#4d7a2c', leafDark: '#33581c', cheek: '#7faa50', mood: 'wild',
+    body: '#4f8f4a', bodyDark: '#2f6030', bodyLight: '#86bd72', // forest green
+    leaf: '#3f7a3a', leafDark: '#2a521f', cheek: '#7faa60', mood: 'wild',
     pattern: 'spiky',
   },
   blaze: {
     id: 'blaze', name: 'Blaze Pineapple', deco: 'flamecrown',
-    body: '#ff9f28', bodyDark: '#e06a08', bodyLight: '#ffcf80',
-    leaf: '#f08020', leafDark: '#b05008', cheek: '#ffa850', mood: 'fierce',
-    embers: true, glow: 'rgba(255, 150, 30, 0.6)',
+    body: '#ff8a1e', bodyDark: '#d65e08', bodyLight: '#ffbe6e', // bright orange
+    leaf: '#f07a12', leafDark: '#b0500a', cheek: '#ffa64a', mood: 'fierce',
+    embers: true, glow: 'rgba(255, 140, 20, 0.55)',
   },
 
   // ================================================================
-  // WORLD 4 — Cosmic Summit (space / stellar)
+  // WORLD 4 — Cosmic Summit :  violet · blue · lilac-grey · amber · indigo
   // ================================================================
   cosmic: {
     id: 'cosmic', name: 'Cosmic Pineapple', deco: 'planet',
-    body: '#7a3fd0', bodyDark: '#4a2296', bodyLight: '#bd94f5', // deep violet (vs shimmer's light magenta)
-    leaf: '#7d54d8', leafDark: '#4f2f9c', cheek: '#e07eff', mood: 'stellar',
-    glow: 'rgba(140, 80, 240, 0.6)', pattern: 'stars',
+    body: '#9a4fe0', bodyDark: '#5f28ac', bodyLight: '#cba0f5', // bright violet
+    leaf: '#8a54d8', leafDark: '#5a2f9c', cheek: '#d68eff', mood: 'stellar',
+    glow: 'rgba(150, 80, 235, 0.6)', pattern: 'stars',
   },
   stellar: {
     id: 'stellar', name: 'Stellar Pineapple', deco: 'shootingstar',
-    body: '#4f8cff', bodyDark: '#1f5ad8', bodyLight: '#a6c8ff',
-    leaf: '#5088e8', leafDark: '#2058b0', cheek: '#90b8ff', mood: 'stellar',
+    body: '#3f7dff', bodyDark: '#1c4fd8', bodyLight: '#a6c0ff', // blue
+    leaf: '#3f70e8', leafDark: '#2050b0', cheek: '#8fb4ff', mood: 'stellar',
     glow: 'rgba(70, 130, 255, 0.5)', pattern: 'stars',
   },
   lunar: {
     id: 'lunar', name: 'Lunar Pineapple', deco: 'nightcap',
-    body: '#cfd2e6', bodyDark: '#989cba', bodyLight: '#eef0ff',
-    leaf: '#b6bad4', leafDark: '#80839c', cheek: '#dcdef0', mood: 'sleepy',
-    glow: 'rgba(190, 195, 230, 0.4)',
+    body: '#c6c4e2', bodyDark: '#9490b8', bodyLight: '#efeeff', // lilac grey
+    leaf: '#b4b0d4', leafDark: '#82809c', cheek: '#dcdcf0', mood: 'sleepy',
+    glow: 'rgba(190, 190, 225, 0.4)',
   },
   nova: {
     id: 'nova', name: 'Nova Pineapple', deco: 'sunburst',
-    body: '#ffd23a', bodyDark: '#e0a410', bodyLight: '#fff0a0',
-    leaf: '#ffb020', leafDark: '#c88008', cheek: '#ffd868', mood: 'radiant',
-    glow: 'rgba(255, 210, 60, 0.6)',
+    body: '#ff9414', bodyDark: '#d66404', bodyLight: '#ffc25c', // orange (vs gleam's lemon)
+    leaf: '#f08414', leafDark: '#b85c08', cheek: '#ffb048', mood: 'radiant',
+    glow: 'rgba(255, 150, 20, 0.6)',
   },
   eclipse: {
     id: 'eclipse', name: 'Eclipse Pineapple', deco: 'eclipse',
-    body: '#514270', bodyDark: '#2f2350', bodyLight: '#7c6ba0',
-    leaf: '#43356a', leafDark: '#261848', cheek: '#7a6a9a', mood: 'mysterious',
-    glow: 'rgba(90, 60, 140, 0.55)', shadow: true,
+    body: '#352a60', bodyDark: '#1b1440', bodyLight: '#5e5090', // deep indigo
+    leaf: '#2e2456', leafDark: '#181038', cheek: '#6a5c96', mood: 'mysterious',
+    glow: 'rgba(90, 60, 150, 0.55)', shadow: true,
   },
 
   // ================================================================
-  // WORLD 5 — Prism Realm (light / rainbow / shimmer)
+  // WORLD 5 — Prism Realm :  coral · magenta · lemon · mint · white
   // ================================================================
   prism: {
     id: 'prism', name: 'Prism Pineapple', deco: 'prism',
-    body: '#ff8f7a', bodyDark: '#e04f45', bodyLight: '#ffcabf',
-    leaf: '#ffb84d', leafDark: '#d98c2a', cheek: '#ffd88a', mood: 'radiant',
-    glow: 'rgba(255, 150, 120, 0.6)', pattern: 'rainbow',
+    body: '#ff6f86', bodyDark: '#e03a58', bodyLight: '#ffb0c0', // rose-coral (vs nova's orange)
+    leaf: '#ff8f7a', leafDark: '#d95a48', cheek: '#ffb0a0', mood: 'radiant',
+    glow: 'rgba(255, 120, 140, 0.6)', pattern: 'rainbow',
   },
   shimmer: {
     id: 'shimmer', name: 'Shimmer Pineapple', deco: 'sparkles',
-    body: '#dd7ce4', bodyDark: '#ac44c2', bodyLight: '#f5d2f8', // orchid magenta (vs cosmic's violet)
-    leaf: '#cf82dc', leafDark: '#9a4fb0', cheek: '#eaa6f0', mood: 'sweet',
-    glow: 'rgba(215, 110, 235, 0.5)', sparkle: true,
+    body: '#e85ad0', bodyDark: '#b42aa0', bodyLight: '#f7b0ec', // magenta
+    leaf: '#d85ac8', leafDark: '#a83098', cheek: '#f28ce0', mood: 'sweet',
+    glow: 'rgba(230, 90, 205, 0.5)', sparkle: true,
   },
   gleam: {
     id: 'gleam', name: 'Gleam Pineapple', deco: 'sunglasses',
-    body: '#ffe466', bodyDark: '#e0bc1c', bodyLight: '#fff6b8',
-    leaf: '#f0d858', leafDark: '#b89820', cheek: '#ffe8a0', mood: 'happy',
-    glow: 'rgba(255, 225, 90, 0.5)',
+    body: '#e4ee48', bodyDark: '#c2c81a', bodyLight: '#f6f7a4', // lime-lemon (clearly not orange)
+    leaf: '#cfd824', leafDark: '#9aa010', cheek: '#eef080', mood: 'happy',
+    glow: 'rgba(225, 240, 90, 0.5)',
   },
   aurora: {
     id: 'aurora', name: 'Aurora Pineapple', deco: 'aurora',
-    body: '#5fe6a0', bodyDark: '#22ad6c', bodyLight: '#b4ffd0',
-    leaf: '#3fce88', leafDark: '#1c8a58', cheek: '#8ff0bc', mood: 'cool',
-    glow: 'rgba(70, 230, 150, 0.45)',
+    body: '#33d98a', bodyDark: '#17a864', bodyLight: '#9ff0c4', // spring green
+    leaf: '#22c078', leafDark: '#128a58', cheek: '#7ce8b0', mood: 'cool',
+    glow: 'rgba(60, 225, 150, 0.45)',
   },
   glimmer: {
     id: 'glimmer', name: 'Glimmer Pineapple', deco: 'tiara',
-    body: '#ffffff', bodyDark: '#cdd0e6', bodyLight: '#ffffff',
-    leaf: '#e0e0f0', leafDark: '#a0a0c0', cheek: '#eef0ff', mood: 'crystalline',
-    glow: 'rgba(225, 228, 255, 0.5)', pattern: 'shimmer',
+    body: '#ffffff', bodyDark: '#cfd4ea', bodyLight: '#ffffff', // pure white
+    leaf: '#dfe2f2', leafDark: '#9ea2c2', cheek: '#eef0ff', mood: 'crystalline',
+    glow: 'rgba(220, 225, 255, 0.5)', pattern: 'shimmer',
   },
 };
 
